@@ -1,4 +1,4 @@
-# 3D Radiation Dose Prediction — OpenKBP Challenge
+# 3D Radiation Dose Prediction
 > Predicting radiation therapy dose maps from CT scans using deep learning.
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue)
