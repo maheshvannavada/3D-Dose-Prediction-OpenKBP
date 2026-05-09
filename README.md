@@ -97,6 +97,20 @@ Each panel below shows one axial slice:
 |---------|------------------|----------------|-----------|
 | Anatomical reference | Expert plan (Gy) | Our model output | Where we differ |
 
+
+## Sample Results
+
+**Phase 2 — Data Pipeline verified:**
+![Data Pipeline](results/checkpoint_2_output.png)
+
+**Training Curve (Masked MAE):**
+![Training](results/final_line_figure.png)
+
+**Best Prediction — pt_201:**
+![Heatmap](results/notebook_heatmap_pt_201.png)
+
+**DVH Curves — pt_201:**
+![DVH](results/notebook_dvh_pt_201.png)
 ---
 
 ## Tech Stack
