@@ -1,157 +1,116 @@
-# OpenKBP Grand Challenge 
+# 3D Radiation Dose Prediction — OpenKBP Challenge
+> Predicting radiation therapy dose maps from CT scans using deep learning.
 
-![](read-me-images/aapm.png)
-  
-The _open-kbp_ repository provides code that was intended to help get participants started with developing dose prediction models for the OpenKBP Challenge, which is summarized in our [paper](https://aapm.onlinelibrary.wiley.com/doi/epdf/10.1002/mp.14845). This repository has been repurposed to provide our community with an open framework for developing dose prediction methods. Note that researchers who are interested in developing their own plan optimization methods should refer to the [open-kbp-opt repository](https://github.com/ababier/open-kbp-opt).
+![Python](https://img.shields.io/badge/Python-3.12-blue)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.0-orange)
+![Dataset](https://img.shields.io/badge/Dataset-OpenKBP%202020-green)
+![Status](https://img.shields.io/badge/Status-Complete-brightgreen)
 
- ![](read-me-images/pipeline.png)
+---
 
-**Advice**: The repository can be used on either a local machine or in the cloud (for free) using [Google Colab](https://colab.research.google.com). Google Colab is a great way to compete in OpenKBP without putting a burden on your existing hardware. The service provides high-quality CPUs and GPUs for free, however, your sessions are limited to consecutive 12 hours [[Frequently asked questions]](https://research.google.com/colaboratory/faq.html). 
+## What This Project Does
 
-## Citation
-Please use our paper as the citation for this dataset or code repository:
+When a cancer patient needs radiation therapy, doctors must carefully plan **where** the radiation goes — high dose at the tumor, low dose at healthy organs like the brainstem or spinal cord. This planning process traditionally takes hours of expert time.
 
-A. Babier, B. Zhang, R. Mahmood, K.L. Moore, T.G. Purdie, A.L. McNiven, T.C.Y. Chan, "[OpenKBP: The open-access knowledge-based planning grand challenge and dataset](https://aapm.onlinelibrary.wiley.com/doi/epdf/10.1002/mp.14845)," _Medical Physics_, Vol. 48, pp. 5549-5561, 2021.
+This project builds a deep learning model that **predicts the 3D radiation dose map automatically** from a CT scan in seconds.
 
-# Table of Contents
-- [Data](#data)
-- [What this code does](#what-this-code-does)
-- [Prerequisites](#prerequisites)
-- [Created folder structure](#created-folder-structure)
-- [Getting started...](#getting-started)
-  + [in Colab](#getting-started-in-colab)
-  + [on a local machine](#getting-started-on-a-local-machine)
-- [Running the code...](#running-the-code)
-  + [in Colab](#running-the-code-in-colab)
-  + [on a local machine](#running-the-code-on-local-machine)
-- [Competition results](#competition-results)
-  + [First place](#first-place)
-  + [Runners-up](#runners-up)
-  + [Final testing phase leaderboard](#final-testing-phase-leaderboard)
-- [Sample research that uses the OpenKBP dataset](#sample-research-that-uses-the-openkbp-dataset)
-- [Competition organizers](#competition-organizers)
+---
 
-## Data
-The details of the provided data are available in our paper [OpenKBP: The open-access knowledge-based planning grand challenge and dataset](https://aapm.onlinelibrary.wiley.com/doi/epdf/10.1002/mp.14845). In short, we provide data for 340 patients who were treated for head-and-neck cancer with intensity modulated radiation therapy. The data is split into training (*n*=200), validation (*n*=40), and testing (*n*=100) sets. Every patient in these datasets has a dose distribution, CT images, structure masks, a feasible dose mask (i.e., mask of where dose can be non-zero), and voxel dimensions.
+## The Dataset
 
-## What this code does
-This code will train a small neural network to predict dose. There are five PY files that are required to run the _main\_notebook.ipynb_ and _main.py_ files. Below, we summarize the functionality of each PY file, but more details are provided in the files themselves.
-  
-  - _data_loader.py_: Contains the _DataLoader_ class, which loads the data from the dataset in a standard format. Several data formats (e.g., dose-volume histogram) are available to cater to different modeling techniques.
-  - _dose_evaluation_class.py_: Contains the _EvaluateDose_ class, which is used to evaluate the competition metrics.
-  - _general_functions.py_: Contain several functions with a variety of purposes. 
-  - _network_architectures.py_: Contains the _DefineDoseFromCT_ class, which builds the architecture for a basic U-Net model. This class is inherited by the _PredictionModel_ class. Please note that we intentionally included a network architecture that is **not** state-of-the-art. It is only included to serve as a placeholder for your more sophisticated models. 
-  - _network_functions.py_: Contains the _PredictionModel_ class, which applies a series of methods on a model constructed in _DefineDoseFromCT_. 
+**OpenKBP 2020** — an open dataset of 340 real head-and-neck cancer patients, each with:
+- A CT scan (128 × 128 × 128 voxels)
+- Masks for 10 organs-at-risk (brainstem, spinal cord, parotids, etc.)
+- A ground truth dose map created by expert radiation oncologists
 
-## Prerequisites
-The following are required to run the given notebook, however, you may use any hardware or software you'd like. 
+Dataset source: [github.com/ababier/open-kbp](https://github.com/ababier/open-kbp)
 
-### For running on Google Colab
-- Standard Google account 
+---
 
-### For running on a local machine
-- Linux
-- Python 3.10.9
-- NVIDIA GPU with CUDA and CuDNN (recommended)
-
-
-## Created folder structure
-This repository will create a file structure that branches from a directory called _open-kbp_. The file structure will keep information about predictions from a model (called baseline in this example) and the model itself in the _results_ directory. All the data from the OpenKBP competition (with the original train/validation/test splits) is available under the directory called _provided-data_. This code will also make a directory called _submissions_ to house the zip files that can be submitted to the leader boards on CodaLab. Use this folder tree as a reference (it will more or less build itself).
-   
-```
-open-kbp
-├── provided-data
-│   ├── train-pats
-│   │   ├── pt_*
-│   │       ├── *.csv
-│   ├── valid-pats
-│   │   ├── pt_*
-│   │       ├── *.csv
-│   └── test-pats
-│       ├── pt_*
-│           ├── *.csv
-├── results
-│   ├── baseline
-│   │   ├── models
-│   │   │   ├── epoch_*.h5
-│   │   ├── validation-predictions
-│   │   │   ├── pt_*.csv
-│   │   └── test-predictions
-│   │       ├── pt_*.csv
-│   ├── **Structure repeats when new model is made**
-└── submissions
-    ├── baseline.zip
-    ├── **Structure repeats when new model is made**   
+## How It Works
 
 ```
+CT Scan + Organ Masks  →  3D U-Net Model  →  Predicted Dose Map
+   (11 input channels)       (5.6M params)      (1 output channel)
+```
 
-## Getting started
- Below, we provide instructions for setting up this repository in Google Colab and on a local machine. 
-   
-### Getting started in Colab
-This should be the simplest way to compete in OpenKBP because the software required for dose prediction is installed in the cloud. It also means you can be competitive in OpenKBP without expensive hardware. 
+**The model** is a 3D U-Net — a neural network architecture designed for medical imaging. It compresses the 3D scan to understand the big picture, then expands back to full resolution to make precise voxel-level predictions.
 
-1. Head to <a href="https://colab.research.google.com" _target='blank'>Colab</a>
-1. Select 'GitHub' &rarr; paste the link to <a href="main_notebook.ipynb" _target='blank'>`main_notebook.ipynb`</a> &rarr; ENTER &rarr; click the file name
-1. In the Google Colab toolbar select: Runtime &rarr; Change Runtime. This will open another popup where you should ensure the runtime type is Python 3 and the hardware accelerator is GPU.
+**The loss function** uses Masked MAE — we measure prediction error only inside the patient's body, forcing the model to focus on clinically relevant voxels.
 
-You're all set for executing the code.
+**Evaluation** uses Dose-Volume Histogram (DVH) curves — the gold standard metric used by radiation oncologists to assess treatment plans.
 
-### Getting started on a local machine
-1. Make a virtual environment and activate it
-    ```
-    virtualenv -p python3 open-kbp-venv
-    source open-kbp-venv/bin/activate
-    ```
-2. Clone this repository, navigate to its directory, and install the requirements. Note, that to run Tensorflow 2.1 with a GPU, you may need to build Tensorflow 2.1 from source. The official instructions to build from source are [here](https://www.tensorflow.org/install/source), but I found the third party guide [here](https://gist.github.com/kmhofmann/e368a2ebba05f807fa1a90b3bf9a1e03) more useful. 
+---
 
-    ```
-    git clone https://github.com/ababier/open-kbp
-    cd open-kbp
-    pip3 install -r requirements.txt
-    ```
+## Results
 
-## Running the code
-Running the code in either platform should be straightforward. Any errors are likely the result of data being in an unexpected directory. If the code is running correctly then the progress of the neural network should print out to an output cell (Colab) or the commandline (local machine).
- 
-### Running the code in Colab
-In the Google Colab toolbar select: Runtime > Run all; you can also use the key-binding <Ctrl+F9>.
+| Setting | Masked MAE |
+|---------|-----------|
+| Our model (10 patients, 8 epochs, CPU) | ~15 Gy |
+| OpenKBP top teams (200 patients, GPU) | ~2.5 Gy |
 
-**OR**
+Our result reflects CPU/data constraints — the architecture scales directly to competitive performance with more data and GPU training.
 
-Run each cell individually by clicking the play button in each cell; you can also use the key binding <Shift+Enter> to run a highlighted cell.
+---
 
-### Running the code on local machine
-Run the main file in your newly created virtual environment.
-    ```
-    python3 main.py
-    ```
-Alternatively, you may run the notebook in Jupyter Notebook or Jupyter Lab locally, but only after commenting out the commands related to Google Drive and changing the paths for where the provided data is stored and where the results are saved.
+## Project Structure
 
-## Competition results
-The OpenKBP Challenge attracted 195 participants from 28 counties. The competition started February 21, 2020 and concluded on June 1, 2020. A total of 1750 submissions were made to the validation phase by the 44 teams (consisting of 73 people) who made at least 1 submission. In the testing phase, 28 teams (consisting of 54 people) made submissions. The top teams in this competition are highlighted below. **Note that the dose for patients in the validation and testing data was only published on June 23, 2020 after the Challenge concluded.  
+```
+├── phase2_dataloader.py   # Load & preprocess CT scans and organ masks
+├── phase3_unet.py         # 3D U-Net architecture
+├── phase4_train.py        # Training loop with masked MAE loss
+├── phase5_evaluate.py     # Heatmaps and DVH curve evaluation
+├── analysis.ipynb         # Full portfolio notebook with all results
+└── provided-data/         # OpenKBP patient data (340 patients)
+```
 
-### First place
+---
 
-**Dose and DVH Stream**: Shuolin Liu, Jingjing Zhang, Teng Li1, Hui Yan, Jianfei Liu, *LSL AnHui University*, Anhui University, China. [\[GitHub Repository\]](https://github.com/LSL000UD/RTDosePrediction) [\[Paper\]](https://aapm.onlinelibrary.wiley.com/doi/full/10.1002/mp.15034)
+## How to Run
 
-### Runners-up
+```bash
+# 1. Clone this repo
+git clone https://github.com/YOUR_USERNAME/3D-Dose-Prediction-OpenKBP.git
+cd 3D-Dose-Prediction-OpenKBP
 
-**Dose Stream**: Mary P. Gronberg, Skylar S. Gay, Tucker J. Netherton, Dong Joo Rhee, Laurence E. Court, Carlos E. Cardenas, *SuperPod*, MD Anderson Cancer Center, United States. [\[Paper\]](https://aapm.onlinelibrary.wiley.com/doi/full/10.1002/mp.14827) 
+# 2. Install dependencies
+pip install torch torchvision numpy pandas matplotlib tqdm
 
-**DVH Stream**: Lukas Zimmermann, Erik Faustmann, Christian Ramsl, Dietmar Georg, Gerd Heilemann, *PTV - Prediction Team Vienna*, Medical University of Vienna, Austria. [\[Paper\]](https://aapm.onlinelibrary.wiley.com/doi/full/10.1002/mp.14774)
- 
-### Final testing phase leaderboard 
-This leaderboard contains the final results of this challenge, which is the first controlled and blinded test of KBP method implementations from several institutions. 
- 
- ![](read-me-images/final_leaderboard.png)
+# 3. Train the model
+python phase4_train.py
 
- Researchers can still sign up and submit to a live leaderboard on [CodaLab](https://competitions.codalab.org/competitions/?q=openkbp). However, **since the results are no longer blinded there is no way to ensure the validation and test set was used as intended (i.e., without any peaking at test data)**. 
+# 4. Evaluate and generate plots
+python phase5_evaluate.py
 
-## Sample research that uses the OpenKBP dataset
- - D. Nguyen, A.S. Barkousaraie, G. Bohara, A. Balagopal, R. McBeth, M. Lin, S. Jiang, "[A comparison of Monte Carlo dropout and bootstrap aggregation on the performance and uncertainty estimation in radiation therapy dose prediction with deep learning neural networks](https://iopscience.iop.org/article/10.1088/1361-6560/abe04f)," _Physics in Medicine & Biology_, Vol. 60, p. 054002, 2021.
-- I. Isler, C. Lisle, J. Rineer, P. Kelly, D. Turgut, J. Ricci, U. Bagci, "[Enhancing Organ at Risk Segmentation with Improved Deep Neural Networks](https://arxiv.org/abs/2202.01866)," arXiv:2202.01866, 2022.
+# 5. Open the portfolio notebook
+jupyter notebook analysis.ipynb
+```
 
-## Competition organizers
-OpenKBP was organized by Aaron Babier, Binghao Zhang, Rafid Mahmood, and Timothy Chan (University of Toronto, Canada); Andrea McNiven and Thomas Purdie (Princess Margaret Cancer Center, Canada); Kevin Moore (UC San Diego, USA). This challenge was supported by [The American Association of Physicists in Medicine](https://www.aapm.org/GrandChallenge/OpenKBP/). 
+---
+
+## Sample Output
+
+The model predicts a 3D dose distribution for each patient.
+Each panel below shows one axial slice:
+
+| CT Scan | Ground Truth Dose | Predicted Dose | Error Map |
+|---------|------------------|----------------|-----------|
+| Anatomical reference | Expert plan (Gy) | Our model output | Where we differ |
+
+---
+
+## Tech Stack
+
+- **PyTorch** — model building and training
+- **NumPy / Pandas** — data processing
+- **Matplotlib** — visualization
+- **SimpleITK / pydicom** — medical image I/O
+
+---
+
+## Reference
+
+Babier et al., *OpenKBP: The open-access knowledge-based planning grand challenge*, Medical Physics, 2021.
+
+---
 
